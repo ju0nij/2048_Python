@@ -41,12 +41,18 @@ def updateScore():
 
 def printMap():
     clearConsole()
-    print('조작: WASD, 신규생성숫자: *, 현재 점수: ', _curr, ', 현재 최고점수(숫자): ', _max)
+    print('2048 with Python ver 1112')
+    print('조작: WASD, 신규생성숫자: *, 현재 점수: ', _curr, ', 현재 최고점수(숫자): ', end='')
+    if _curr == _max:
+        print('*', end='')
+    print(_max)
     print()
     for x in range(_MAPSIZE):
         for y in range(_MAPSIZE):
             if x == _newX and y == _newY:
                 print('*'+ str(map[x][y]), ' '*(_SPACE-len(str(map[x][y]))), end='')
+            elif map[x][y] == 0:
+                print('■', ' '*(_SPACE-len(str(map[x][y]))), end='')
             else: print(map[x][y], ' '*(_SPACE-len(str(map[x][y]))+1), end='')
         for z in range(_SPACE):
             print()
@@ -247,3 +253,4 @@ while _isExit == False:
             print('잘못 입력하셨습니다')
             continue
     clearMap()
+    
