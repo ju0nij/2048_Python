@@ -1,5 +1,5 @@
-import random
 import os
+import random
 
 _MAPSIZE = 4
 _SPACE = 4
@@ -12,32 +12,18 @@ _newY = -1
 _curr = 1
 _max = 1
 
-map = [[0 for col in range(4)] for row in range(4)]
+map = [[0 for col in range(_MAPSIZE)] for row in range(_MAPSIZE)]
 
 def init():
     xpos = random.randint(0,_MAPSIZE-1)
     ypos = random.randint(0,_MAPSIZE-1)
     map[xpos][ypos] = 2
-
-def clearMap():
-    global _curr
-    global _isFinished
-    _isFinished = False
-    _curr = 1
-    for x in range(_MAPSIZE):
-        for y in range(_MAPSIZE):
-            map[x][y]=0
-    
+        
 def clearConsole():
     command = 'clear'
     if os.name in ('nt', 'dos'):
         command = 'cls'
     os.system(command)
-
-def updateScore():
-    global _max
-    if _curr > _max:
-        _max = _curr
 
 def printMap():
     clearConsole()
@@ -57,7 +43,21 @@ def printMap():
         for z in range(_SPACE):
             print()
 
-def makeitRandom():
+def clearMap():
+    global _curr
+    global _isFinished
+    _isFinished = False
+    _curr = 1
+    for x in range(_MAPSIZE):
+        for y in range(_MAPSIZE):
+            map[x][y]=0
+
+def updateScore():
+    global _max
+    if _curr > _max:
+        _max = _curr
+
+def makeItRandomly():
     global _newX
     global _newY
     if hasNoSpace() == True:
@@ -79,7 +79,21 @@ def makeitRandom():
             if map[xpos][ypos] > _curr:
                 _curr = map[xpos][ypos]
             return
-
+        
+def checkAvailableDir(x, y, dir):
+    if dir == 'UP':
+        if x>0: return True
+        else: return False
+    if dir == 'DOWN':
+        if x<_MAPSIZE: return True
+        else: return False
+    if dir == 'LEFT':
+        if y>0: return True
+        else: return False
+    if dir == 'RIGHT':
+        if y<_MAPSIZE: return True
+        else: return False 
+ 
 def isPlayAvailable():
     if hasNoSpace() == False:
         return True
@@ -151,22 +165,9 @@ def getInput():
     else:
         print('잘못 입력하셨습니다. 다시 시도해주세요.')
         getInput()
+    print()
         
-def checkAvailableDir(x, y, dir):
-    if dir == 'UP':
-        if x>0: return True
-        else: return False
-    if dir == 'DOWN':
-        if x<_MAPSIZE: return True
-        else: return False
-    if dir == 'LEFT':
-        if y>0: return True
-        else: return False
-    if dir == 'RIGHT':
-        if y<_MAPSIZE: return True
-        else: return False
-    
-            
+           
 def applyDir(_dir):
     global _curr
     if _dir == 'UP':
@@ -193,7 +194,7 @@ def applyDir(_dir):
                                 if map[m+1][n] == 0:
                                     map[m+1][n] = map[m][n]
                                     map[m][n] = 0
-                if map[x-1][y] == map[x][y]:
+                if map[x][y] == map[x-1][y]:
                     map[x][y]*=2
                     map[x-1][y]=0
                     if map[x][y]>_curr:
@@ -207,7 +208,7 @@ def applyDir(_dir):
                                 if map[m][n-1] == 0:
                                     map[m][n-1] = map[m][n]
                                     map[m][n] = 0
-                if map[x][y] == map[x][y-1]:
+                if map[x][y-1] == map[x][y]:
                     map[x][y-1]*=2
                     map[x][y]=0
                     if map[x][y-1]>_curr:
@@ -222,7 +223,7 @@ def applyDir(_dir):
                                 if map[m][n+1] == 0:
                                     map[m][n+1] = map[m][n]
                                     map[m][n] = 0
-                if map[x][y-1] == map[x][y]:
+                if map[x][y] == map[x][y-1]:
                     map[x][y]*=2
                     map[x][y-1]=0
                     if map[x][y]>_curr:
@@ -231,7 +232,7 @@ def applyDir(_dir):
 def _ingame():
     init()
     while _isFinished == False:
-        makeitRandom()
+        makeItRandomly()
         if isPlayAvailable() == False:
             break
         updateScore()
@@ -243,7 +244,7 @@ while _isExit == False:
     printMap()
     while True:
         print('게임이 종료되었습니다. 다시하시겠습니까?')
-        ans = input('다시시작: Y, 게임종료: N')
+        ans = input('다시시작: Y, 게임종료: N: ')
         if ans == 'y' or ans == 'Y':
             break
         elif ans == 'n' or ans == 'N':
@@ -253,4 +254,4 @@ while _isExit == False:
             print('잘못 입력하셨습니다')
             continue
     clearMap()
-    
+print('게임을 종료하였습니다.')
