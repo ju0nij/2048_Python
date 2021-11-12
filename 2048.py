@@ -2,7 +2,7 @@ import os
 import random
 
 _MAPSIZE = 4
-_SPACE = 4
+_SPACE = _MAPSIZE
 
 _isFinished = False
 _isExit = False
@@ -12,9 +12,17 @@ _newY = -1
 _curr = 1
 _max = 1
 
-map = [[0 for col in range(_MAPSIZE)] for row in range(_MAPSIZE)]
+map = [[0 for col in range(10)] for row in range(10)]
 
 def init():
+    global _MAPSIZE
+    print('게임 시작전, 판의 크기를 정해주세요(정사각형, 추천: 4x4)')
+    while True:
+        _MAPSIZE = int(input('숫자 하나를 입력해주세요(3~10): '))
+        if _MAPSIZE>=3 and _MAPSIZE<=10:
+            break
+        else:
+            print('범위를 초과하였습니다. 다시 입력해주세요.')
     xpos = random.randint(0,_MAPSIZE-1)
     ypos = random.randint(0,_MAPSIZE-1)
     map[xpos][ypos] = 2
@@ -27,7 +35,7 @@ def clearConsole():
 
 def printMap():
     clearConsole()
-    print('2048 with Python ver 1112')
+    print('2048 with Python ver 1112 (',str(_MAPSIZE), 'x', str(_MAPSIZE), ')')
     print('조작: WASD, 신규생성숫자: *, 현재 점수: ', _curr, ', 현재 최고점수(숫자): ', end='')
     if _curr == _max:
         print('*', end='')
@@ -40,7 +48,7 @@ def printMap():
             elif map[x][y] == 0:
                 print('■', ' '*(_SPACE-len(str(map[x][y]))), end='')
             else: print(map[x][y], ' '*(_SPACE-len(str(map[x][y]))+1), end='')
-        for z in range(_SPACE):
+        for z in range(_SPACE-1):
             print()
 
 def clearMap():
