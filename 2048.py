@@ -1,8 +1,8 @@
 import os
 import random
 
-_MAPSIZE = 4
-_SPACE = _MAPSIZE
+_MAPSIZE = 10
+_SPACE = 4
 
 _isFinished = False
 _isExit = False
@@ -12,14 +12,15 @@ _newY = -1
 _curr = 1
 _max = 1
 
-map = [[0 for col in range(10)] for row in range(10)]
+map = [[0 for col in range(_MAPSIZE)] for row in range(_MAPSIZE)]
 
 def init():
     global _MAPSIZE
+    clearConsole()
     print('게임 시작전, 판의 크기를 정해주세요(정사각형, 추천: 4x4)')
     while True:
         _MAPSIZE = int(input('숫자 하나를 입력해주세요(3~10): '))
-        if _MAPSIZE>=3 and _MAPSIZE<=10:
+        if _MAPSIZE >= 3 and _MAPSIZE <= 10:
             break
         else:
             print('범위를 초과하였습니다. 다시 입력해주세요.')
@@ -28,10 +29,8 @@ def init():
     map[xpos][ypos] = 2
         
 def clearConsole():
-    command = 'clear'
-    if os.name in ('nt', 'dos'):
-        command = 'cls'
-    os.system(command)
+    if os.name in ('nt', 'dos'): os.system('cls')
+    else: os.system('clear')
 
 def printMap():
     clearConsole()
@@ -150,16 +149,6 @@ def hasNoSpace():
                 return False
     return True
 
-def checkIsFinished():
-    global _isFinished
-    hasZero = False
-    for x in range(_MAPSIZE):
-        for y in range(_MAPSIZE):
-            if map[x][y] == 2048:
-                _isFinished = True
-                return True
-    return False
-
 def getInput():
     key = input('방향: ')
     if key == 'w' or key == 'W':
@@ -173,8 +162,7 @@ def getInput():
     else:
         print('잘못 입력하셨습니다. 다시 시도해주세요.')
         getInput()
-    print()
-        
+    print()   
            
 def applyDir(_dir):
     global _curr
@@ -188,9 +176,9 @@ def applyDir(_dir):
                                     map[m-1][n] = map[m][n]
                                     map[m][n] = 0
                 if map[x-1][y] == map[x][y]:
-                    map[x-1][y]*=2
-                    map[x][y]=0
-                    if map[x-1][y]>_curr:
+                    map[x-1][y] *= 2
+                    map[x][y] = 0
+                    if map[x-1][y] > _curr:
                         _curr = map[x-1][y]
 
     elif _dir == 'DOWN':
@@ -203,9 +191,9 @@ def applyDir(_dir):
                                     map[m+1][n] = map[m][n]
                                     map[m][n] = 0
                 if map[x][y] == map[x-1][y]:
-                    map[x][y]*=2
-                    map[x-1][y]=0
-                    if map[x][y]>_curr:
+                    map[x][y] *= 2
+                    map[x-1][y] = 0
+                    if map[x][y] > _curr:
                         _curr = map[x][y]
     elif _dir == 'LEFT':
         for y in range(1, _MAPSIZE, 1):
@@ -217,9 +205,9 @@ def applyDir(_dir):
                                     map[m][n-1] = map[m][n]
                                     map[m][n] = 0
                 if map[x][y-1] == map[x][y]:
-                    map[x][y-1]*=2
-                    map[x][y]=0
-                    if map[x][y-1]>_curr:
+                    map[x][y-1] *= 2
+                    map[x][y] = 0
+                    if map[x][y-1] > _curr:
                         _curr = map[x][y-1]
 
     elif _dir == 'RIGHT':
@@ -232,10 +220,11 @@ def applyDir(_dir):
                                     map[m][n+1] = map[m][n]
                                     map[m][n] = 0
                 if map[x][y] == map[x][y-1]:
-                    map[x][y]*=2
-                    map[x][y-1]=0
-                    if map[x][y]>_curr:
+                    map[x][y] *= 2
+                    map[x][y-1] = 0
+                    if map[x][y] > _curr:
                         _curr = map[x][y]
+    else: return
 
 def _ingame():
     init()
@@ -259,7 +248,7 @@ while _isExit == False:
             _isExit = True
             break
         else:
-            print('잘못 입력하셨습니다')
+            print('잘못 입력하셨습니다. 다시 입력해주세요.')
             continue
     clearMap()
 print('게임을 종료하였습니다.')
