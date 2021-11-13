@@ -7,10 +7,11 @@ _SPACE = 4
 
 _newX = -1
 _newY = -1
-_curr = 1
+_curr = 2048
 _max = 1
 _isFinished = False
 _isExit = False
+_isOver2048 = False
 
 map = [[0 for col in range(_MAPSIZE)] for row in range(_MAPSIZE)]
 
@@ -38,7 +39,7 @@ def clearConsole():
 
 def printMap():
     clearConsole()
-    print('2048 with Python ver 1112 (',str(_MAPSIZE), 'x', str(_MAPSIZE), ')')
+    print('2048 with Python ver 1114 (',str(_MAPSIZE), 'x', str(_MAPSIZE), ')')
     print('조작: WASD, 신규생성숫자: *, 현재 점수: ', _curr, ', 현재 최고점수(숫자): ', end='')
     if _curr == _max:
         print('*', end='')
@@ -67,6 +68,21 @@ def updateScore():
     global _max
     if _curr > _max:
         _max = _curr
+    if _curr == 2048 and _isOver2048 == False:
+        over2048()
+            
+def over2048():
+    global _isFinished
+    global _isOver2048
+    clearConsole()
+    print('2048 점을 넘으셨습니다!! 계속 플레이 하시겠습니까?')
+    ovr = input('예: Y, 아니오: N: ')
+    if ovr == 'Y' or ovr == 'y':
+        _isOver2048 = True
+        return
+    elif ovr == 'N' or ovr == 'n':
+        _isFinished = True
+        return
 
 def makeItRandomly():
     global _newX
@@ -106,9 +122,11 @@ def checkAvailableDir(x, y, dir):
         else: return False 
  
 def isPlayAvailable():
-    if hasNoSpace() == False:
-        return True
     global _isFinished
+    if _isFinished == True:
+        return False
+    elif hasNoSpace() == False:
+        return True
     for m in range(_MAPSIZE-1, 0, -1):
             for n in range(0, _MAPSIZE):
                     if map[m-1][n] == 0:
@@ -155,13 +173,13 @@ def hasNoSpace():
 
 def getInput():
     key = input('방향: ')
-    if key == 'W' or key == 'w':
+    if key == 'W' or key == 'w' or key == 'ㅉ' or key == 'ㅈ':
         applyDir('UP')
-    elif key == 'A' or key == 'a':
+    elif key == 'A' or key == 'a' or key == 'ㅁ':
         applyDir('LEFT')
-    elif key == 'S' or key == 's':
+    elif key == 'S' or key == 's' or key == 'ㄴ':
         applyDir('DOWN')
-    elif key == 'D' or key == 'd':
+    elif key == 'D' or key == 'd' or key == 'ㅇ':
         applyDir('RIGHT')
     else:
         print('잘못 입력하셨습니다. 다시 시도해주세요.')
@@ -232,9 +250,9 @@ def _inGame():
     init()
     while _isFinished == False:
         makeItRandomly()
+        updateScore()
         if isPlayAvailable() == False:
             break
-        updateScore()
         printMap()
         getInput()
 
@@ -246,9 +264,9 @@ def inGame():
         while True:
             print('게임이 종료되었습니다. 다시하시겠습니까?')
             ans = input('다시시작: Y, 게임종료: N: ')
-            if ans == 'Y' or ans == 'y':
+            if ans == 'Y' or ans == 'y' or ans == 'ㅇ':
                 break
-            elif ans == 'N' or ans == 'n':
+            elif ans == 'N' or ans == 'n' or ans == 'ㄴ':
                 _isExit = True
                 break
             else:
