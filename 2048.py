@@ -7,7 +7,7 @@ _SPACE = 4
 
 _newX = -1
 _newY = -1
-_curr = 2048
+_curr = 1
 _max = 1
 _isFinished = False
 _isExit = False
