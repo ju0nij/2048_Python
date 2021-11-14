@@ -69,13 +69,13 @@ def updateScore():
     global _max
     if _curr > _max:
         _max = _curr
-    if _curr == 2048 and _isOver2048 == False:
+    if _curr == 2048 and not _isOver2048:
         over2048()
 
 def makeItRandomly():
     global _newX
     global _newY
-    if hasNoSpace() == True:
+    if hasNoSpace():
         _newX = -1
         _newY = -1
         return
@@ -112,9 +112,9 @@ def checkAvailableDir(x, y, dir):
 
 def isPlayAvailable():
     global _isFinished
-    if _isFinished == True:
+    if _isFinished:
         return False
-    elif hasNoSpace() == False:
+    elif not hasNoSpace():
         return True
     for m in range(_MAPSIZE-1, 0, -1):
             for n in range(0, _MAPSIZE):
@@ -136,7 +136,7 @@ def isPlayAvailable():
             if map[m][n+1] == 0:
                 map[m][n+1] = map[m][n]
                 map[m][n] = 0
-    if hasNoSpace() == True:
+    if hasNoSpace():
         if map[0][0] == map[0][1] or map[0][0] == map[1][0]:
             return True
         if map[_MAPSIZE-1][_MAPSIZE-1] == map[_MAPSIZE-1][_MAPSIZE-2] or map[_MAPSIZE-1][_MAPSIZE-1] == map[_MAPSIZE-2][_MAPSIZE-1]:
@@ -196,7 +196,7 @@ def applyDir(_dir):
     if _dir == 'Up':
         for x in range(1, _MAPSIZE, 1):
             for y in range(0, _MAPSIZE):
-                if checkAvailableDir(x, y, _dir) == True:
+                if checkAvailableDir(x, y, _dir):
                         for m in range(_MAPSIZE-1, 0, -1):
                             for n in range(0, _MAPSIZE):
                                 if map[m-1][n] == 0:
@@ -210,7 +210,7 @@ def applyDir(_dir):
     elif _dir == 'Left':
         for y in range(1, _MAPSIZE, 1):
             for x in range(0, _MAPSIZE):
-                if checkAvailableDir(x, y, _dir) == True:
+                if checkAvailableDir(x, y, _dir):
                         for n in range(_MAPSIZE-1, 0, -1):
                             for m in range(0, _MAPSIZE):
                                 if map[m][n-1] == 0:
@@ -224,7 +224,7 @@ def applyDir(_dir):
     elif _dir == 'Down':
         for x in range(_MAPSIZE-1, 0, -1):
             for y in range(0, _MAPSIZE):
-                if checkAvailableDir(x, y, _dir) == True:
+                if checkAvailableDir(x, y, _dir):
                         for m in range(0, _MAPSIZE-1):
                             for n in range(0, _MAPSIZE):
                                 if map[m+1][n] == 0:
@@ -238,7 +238,7 @@ def applyDir(_dir):
     elif _dir == 'Right':
         for y in range(_MAPSIZE-1, 0, -1):
             for x in range(0, _MAPSIZE):
-                if checkAvailableDir(x, y, _dir) == True:
+                if checkAvailableDir(x, y, _dir):
                         for n in range(0, _MAPSIZE-1):
                             for m in range(0, _MAPSIZE):
                                 if map[m][n+1] == 0:
@@ -253,10 +253,10 @@ def applyDir(_dir):
 
 def _inGame():
     init()
-    while _isFinished == False:
+    while not _isFinished:
         makeItRandomly()
         updateScore()
-        if isPlayAvailable() == False:
+        if not isPlayAvailable():
             break
         printMap()
         getInput()
@@ -264,7 +264,7 @@ def _inGame():
 
 def inGame():
     global _isExit
-    while _isExit == False:
+    while not _isExit:
         _inGame()
         printMap()
         while True:
