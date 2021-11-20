@@ -2,37 +2,125 @@ import os
 import random
 
 
-_BOARDSIZE = 15
+_BOARDSIZE = 4
 _SPACE = 4
+_MAXBOARDSIZE = 11
 
 _xPos = -1
 _yPos = -1
 _curr = 1
 _max = 1
+_icon = 0
+_version = 1121
+_isOnGame = False
 _isFinGame = False
 _isExit = False
 _isOver2048 = False
 
-board = [[0 for col in range(_BOARDSIZE)] for row in range(_BOARDSIZE)]
-
+board = [[0 for col in range(_MAXBOARDSIZE)] for row in range(_MAXBOARDSIZE)]
+icons = ['■', '□', '◆', '◇', '●', '○', '★', '☆']
 
 def init():
     global _BOARDSIZE
-    clearConsole()
-    print('게임 시작전, 판의 크기를 정해주세요.(정사각형, 추천: 4x4)')
+    global _isFinGame
+    global _isOnGame
+    global _isExit
+    readSettings()
     while True:
-        _BOARDSIZE = input('숫자 하나를 입력해주세요(3~11): ')
-        try: _BOARDSIZE = int(_BOARDSIZE)
+        clearConsole()
+        print('2048 with Python ver', _version)
+        print('1. Play  2. 설정 변경  3. Exit')
+        ans = input('무엇을 하시겠습니까? ')
+        try: ans = int(ans)
         except:
             print('숫자가 아닙니다. 다시 입력해주세요.')
             continue
-        if _BOARDSIZE in range(3, 12):
+        if ans == 1:
+            _isOnGame = True
             break
-        else:
-            print('범위를 초과하였습니다. 다시 입력해주세요.')
+        elif ans == 2:
+            updateSettings()
+        elif ans == 3:
+            _isFinGame = True
+            _isExit = True
+            _BOARDSIZE = 1
+            return
+    clearConsole()
     xPos = random.randint(0, _BOARDSIZE-1)
     yPos = random.randint(0, _BOARDSIZE-1)
     board[xPos][yPos] = 2
+
+def readSettings():
+    global _max
+    global _icon
+    try:
+        with open('data.bin', 'r') as file:
+            lines = file.readlines()
+            _max = int(lines[0])
+            _icon = int(lines[1])
+    except: return
+
+def writeSettings():
+    with open('data.bin', 'w') as file:
+        file.write(str(_max) + '\n')
+        file.write(str(_icon) + '\n')
+
+def updateSettings():
+    global _BOARDSIZE
+    global _icon
+    while True:
+        clearConsole()
+        print('1. 공백 아이콘 변경  2. 판 크기 변경  3. 나가기')
+        ans = input('무엇을 하시겠습니까? ')
+        try: ans = int(ans)
+        except:
+            print('숫자가 아닙니다. 다시 입력해주세요.')
+            continue
+        if ans == 1:
+            while True:
+                print('1. ■, 2. □, 3. ◆, 4. ◇, 5. ●, 6. ○, 7. ★, 8. ☆')
+                print('현재 설정: ', end='')
+                print(_icon+1)
+                inp = input('무엇으로 하시겠습니까? ')
+                try: inp = int(inp)
+                except:
+                    print('숫자가 아닙니다. 다시 입력해주세요.')
+                    continue
+                if inp not in range(1, len(icons)+1):
+                    print('범위를 초과하였습니다. 다시 입력해주세요.')
+                    continue
+                _icon = inp-1
+                print('완료하였습니다. 계속하시려면 아무 키나 눌러주세요.')
+                input()
+                break
+        elif ans == 2:
+            while True:
+                print('판의 크기를 정해주세요.(정사각형, 추천: 4x4)')
+                print('현재 판의 크기: ', end='')
+                print(_BOARDSIZE)
+                if not _isOnGame:
+                    inp = input('숫자 하나를 입력해주세요(' + str(3) + '~' + str(_MAXBOARDSIZE) + '): ')
+                else:
+                    inp = input('숫자 하나를 입력해주세요(' + str(_BOARDSIZE) + '~' + str(_MAXBOARDSIZE) + '): ')
+                try: inp = int(inp)
+                except:
+                    print('숫자가 아닙니다. 다시 입력해주세요.')
+                    continue
+                if _isOnGame and inp < _BOARDSIZE:
+                    print('범위를 초과하였습니다. 다시 입력해주세요.')
+                    continue
+                elif inp in range(3, _MAXBOARDSIZE+1):
+                    _BOARDSIZE = inp
+                    print('완료하였습니다. 계속하시려면 아무 키나 눌러주세요.')
+                    input()
+                    break
+                else:
+                    print('범위를 초과하였습니다. 다시 입력해주세요.')
+        elif ans == 3:
+            break
+        else:
+            print('잘못 입력하셨습니다. 다시 입력해주세요.')
+    writeSettings()
 
 def clearConsole():
     if os.name in ('nt', 'dos'): os.system('cls')
@@ -40,7 +128,7 @@ def clearConsole():
 
 def printBoard():
     clearConsole()
-    print('2048 with Python ver 1115 (',str(_BOARDSIZE), 'x', str(_BOARDSIZE), ')')
+    print('2048 with Python ver', _version, ' (',str(_BOARDSIZE), 'x', str(_BOARDSIZE), ')')
     print('조작: WASD, 신규생성숫자: *, 현재 점수: ', _curr, ', 현재 최고점수(숫자): ', end='')
     if _curr == _max:
         print('*', end='')
@@ -51,7 +139,7 @@ def printBoard():
             if x == _xPos and y == _yPos:
                 print('*'+ str(board[x][y]), ' '*(_SPACE-len(str(board[x][y]))), end='')
             elif board[x][y] == 0:
-                print('■', ' '*(_SPACE-len(str(board[x][y]))), end='')
+                print(icons[_icon], ' '*(_SPACE-len(str(board[x][y]))), end='')
             else: print(board[x][y], ' '*(_SPACE-len(str(board[x][y]))+1), end='')
         for z in range(_SPACE-1):
             print()
@@ -75,11 +163,11 @@ def updateScore():
 def genNumRandomly():
     global _xPos
     global _yPos
+    global _curr
     if hasNoSpace():
         _xPos = -1
         _yPos = -1
         return
-    global _curr
     arg = random.randint(1, 5)
     while True:
         xPos = random.randint(0, _BOARDSIZE-1)
@@ -178,6 +266,7 @@ def over2048():
             continue
 
 def getInput():
+    global _isFinGame
     key = input('방향: ')
     if key in ('W', 'w', 'ㅉ', 'ㅈ'):
         applyDir('Up')
@@ -187,6 +276,10 @@ def getInput():
         applyDir('Down')
     elif key in ('D', 'd', 'ㅇ'):
         applyDir('Right')
+    elif key in ('Z', 'z'):
+        _isFinGame = True
+    elif key in ('U', 'u'):
+        updateSettings()
     else:
         print('잘못 입력하셨습니다. 다시 입력해주세요.')
         getInput()
@@ -267,10 +360,12 @@ def inGame():
     while not _isExit:
         _inGame()
         printBoard()
+        writeSettings()
         while True:
             print('게임이 종료되었습니다. 다시하시겠습니까?')
             ans = input('다시시작: Y, 게임종료: N: ')
             if ans in ('Y', 'y', 'ㅇ'):
+                _isOnGame = False
                 break
             elif ans in ('N', 'n', 'ㄴ'):
                 _isExit = True
