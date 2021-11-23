@@ -20,6 +20,7 @@ _isOver2048 = False
 board = [[0 for col in range(_MAXBOARDSIZE)] for row in range(_MAXBOARDSIZE)]
 icons = ['■', '□', '◆', '◇', '●', '○', '★', '☆']
 
+
 def init():
     global _BOARDSIZE
     global _isFinGame
@@ -91,7 +92,7 @@ def updateSettings():
                     continue
                 _icon = inp-1
                 print('완료하였습니다. 계속하시려면 아무 키나 눌러주세요.')
-                input()
+                input() 
                 break
         elif ans == 2:
             while True:
@@ -129,7 +130,8 @@ def clearConsole():
 def printBoard():
     clearConsole()
     print('2048 with Python ver', _version, ' (',str(_BOARDSIZE), 'x', str(_BOARDSIZE), ')')
-    print('조작: WASD, 신규생성숫자: *, 현재 점수: ', _curr, ', 현재 최고점수(숫자): ', end='')
+    print('조작: WASD, 신규생성숫자: *, 설정: U, 게임 종료: Z')
+    print('현재 점수: ', _curr, ', 현재 최고점수(숫자): ', end='')
     if _curr == _max:
         print('*', end='')
     print(_max)
