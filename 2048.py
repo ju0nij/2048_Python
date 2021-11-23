@@ -168,12 +168,12 @@ def genNumRandomly():
         _xPos = -1
         _yPos = -1
         return
-    arg = random.randint(1, 5)
+    arg = random.randint(1, 10)
     while True:
         xPos = random.randint(0, _BOARDSIZE-1)
         yPos = random.randint(0, _BOARDSIZE-1)
         if board[xPos][yPos] == 0:
-            if arg < 5:
+            if arg < 9:
                 board[xPos][yPos] = 2
             else:
                 board[xPos][yPos] = 4
