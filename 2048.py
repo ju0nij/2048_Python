@@ -17,7 +17,7 @@ _isFinGame = False
 _isExit = False
 _isOver2048 = False
 
-board = [[0 for col in range(_MAXBOARDSIZE)] for row in range(_MAXBOARDSIZE)]
+board = [[0 for col in range(_MAXBOARDSIZE+1)] for row in range(_MAXBOARDSIZE+1)]
 icons = ['■', '□', '◆', '◇', '●', '○', '★', '☆']
 
 
@@ -58,10 +58,19 @@ def readSettings():
     try:
         with open('data.bin', 'r') as file:
             lines = file.readlines()
-            _max = int(lines[0])
-            _icon = int(lines[1])
-            _BOARDSIZE = int(lines[2])
+            try: _max = int(lines[0])
+            except: _max = 1
+            try: _icon = int(lines[1])
+            except: _icon = 0
+            try: _BOARDSIZE = int(lines[2])
+            except: _BOARDSIZE = 4
     except: return
+    if _max > 100000:
+        _max = 1
+    if _icon not in range(0, 8):
+        _icon = 0
+    if _BOARDSIZE not in range(3, _MAXBOARDSIZE+1):
+        _BOARDSIZE = 4
 
 def writeSettings():
     global _BOARDSIZE
@@ -231,16 +240,8 @@ def isPlayAvailable():
                 board[m][n+1] = board[m][n]
                 board[m][n] = 0
     if hasNoSpace():
-        if board[0][0] == board[0][1] or board[0][0] == board[1][0]:
-            return True
-        if board[_BOARDSIZE-1][_BOARDSIZE-1] == board[_BOARDSIZE-1][_BOARDSIZE-2] or board[_BOARDSIZE-1][_BOARDSIZE-1] == board[_BOARDSIZE-2][_BOARDSIZE-1]:
-            return True
-        if board[0][_BOARDSIZE-1] == board[0][_BOARDSIZE-2] or board[0][_BOARDSIZE-1] == board[1][_BOARDSIZE-1]:
-            return True
-        if board[_BOARDSIZE-1][0] == board[_BOARDSIZE-2][0] or board[_BOARDSIZE-1][0] == board[_BOARDSIZE-1][1]:
-            return True
-        for x in range(1, _BOARDSIZE-1):
-            for y in range(1, _BOARDSIZE-1):
+        for x in range(0, _BOARDSIZE):
+            for y in range(0, _BOARDSIZE):
                 if board[x][y] == board[x+1][y] or board[x][y] == board[x][y+1] or board[x][y] == board[x-1][y] or board[x][y] == board[x][y-1]:
                     return True
         _isFinGame = True
@@ -322,11 +323,11 @@ def applyDir(_dir):
         for x in range(1, _BOARDSIZE, 1):
             for y in range(0, _BOARDSIZE):
                 if checkDirAvailable(x, y, _dir):
-                        for m in range(_BOARDSIZE-1, 0, -1):
-                            for n in range(0, _BOARDSIZE):
-                                if board[m-1][n] == 0:
-                                    board[m-1][n] = board[m][n]
-                                    board[m][n] = 0
+                    for m in range(_BOARDSIZE-1, 0, -1):
+                        for n in range(0, _BOARDSIZE):
+                            if board[m-1][n] == 0:
+                                board[m-1][n] = board[m][n]
+                                board[m][n] = 0
                 if board[x-1][y] == board[x][y]:
                     board[x-1][y] *= 2
                     board[x][y] = 0
@@ -336,11 +337,11 @@ def applyDir(_dir):
         for y in range(1, _BOARDSIZE, 1):
             for x in range(0, _BOARDSIZE):
                 if checkDirAvailable(x, y, _dir):
-                        for n in range(_BOARDSIZE-1, 0, -1):
-                            for m in range(0, _BOARDSIZE):
-                                if board[m][n-1] == 0:
-                                    board[m][n-1] = board[m][n]
-                                    board[m][n] = 0
+                    for n in range(_BOARDSIZE-1, 0, -1):
+                        for m in range(0, _BOARDSIZE):
+                            if board[m][n-1] == 0:
+                                board[m][n-1] = board[m][n]
+                                board[m][n] = 0
                 if board[x][y-1] == board[x][y]:
                     board[x][y-1] *= 2
                     board[x][y] = 0
@@ -350,11 +351,11 @@ def applyDir(_dir):
         for x in range(_BOARDSIZE-1, 0, -1):
             for y in range(0, _BOARDSIZE):
                 if checkDirAvailable(x, y, _dir):
-                        for m in range(0, _BOARDSIZE-1):
-                            for n in range(0, _BOARDSIZE):
-                                if board[m+1][n] == 0:
-                                    board[m+1][n] = board[m][n]
-                                    board[m][n] = 0
+                    for m in range(0, _BOARDSIZE-1):
+                        for n in range(0, _BOARDSIZE):
+                            if board[m+1][n] == 0:
+                                board[m+1][n] = board[m][n]
+                                board[m][n] = 0
                 if board[x][y] == board[x-1][y]:
                     board[x][y] *= 2
                     board[x-1][y] = 0
@@ -364,11 +365,11 @@ def applyDir(_dir):
         for y in range(_BOARDSIZE-1, 0, -1):
             for x in range(0, _BOARDSIZE):
                 if checkDirAvailable(x, y, _dir):
-                        for n in range(0, _BOARDSIZE-1):
-                            for m in range(0, _BOARDSIZE):
-                                if board[m][n+1] == 0:
-                                    board[m][n+1] = board[m][n]
-                                    board[m][n] = 0
+                    for n in range(0, _BOARDSIZE-1):
+                        for m in range(0, _BOARDSIZE):
+                            if board[m][n+1] == 0:
+                                board[m][n+1] = board[m][n]
+                                board[m][n] = 0
                 if board[x][y] == board[x][y-1]:
                     board[x][y] *= 2
                     board[x][y-1] = 0
