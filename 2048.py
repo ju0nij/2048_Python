@@ -38,13 +38,13 @@ def init():
             continue
         if ans == 1:
             _isOnGame = True
+            clearBoard()
             break
         elif ans == 2:
             updateSettings()
         elif ans == 3:
             _isFinGame = True
             _isExit = True
-            _BOARDSIZE = 1
             return
     clearConsole()
     xPos = random.randint(0, _BOARDSIZE-1)
@@ -54,17 +54,21 @@ def init():
 def readSettings():
     global _max
     global _icon
+    global _BOARDSIZE
     try:
         with open('data.bin', 'r') as file:
             lines = file.readlines()
             _max = int(lines[0])
             _icon = int(lines[1])
+            _BOARDSIZE = int(lines[2])
     except: return
 
 def writeSettings():
+    global _BOARDSIZE
     with open('data.bin', 'w') as file:
         file.write(str(_max) + '\n')
         file.write(str(_icon) + '\n')
+        file.write(str(_BOARDSIZE) + '\n')
 
 def updateSettings():
     global _BOARDSIZE
@@ -267,6 +271,32 @@ def over2048():
             print('잘못 입력하셨습니다. 다시 입력해주세요.')
             continue
 
+def gameOver():
+    global _isExit
+    global _isFinGame
+    global _isOnGame
+    if not _isExit:
+        printBoard()
+    while not _isExit:
+        print('게임이 종료되었습니다. 다시하시겠습니까?')
+        ans = input('다시시작: Y, 게임종료: N: ')
+        if ans in ('Y', 'y', 'ㅇ'):
+            _isOnGame = False
+            _isFinGame = False
+            return
+        elif ans in ('N', 'n', 'ㄴ'):
+            break
+        else:
+            print('잘못 입력하셨습니다. 다시 입력해주세요.')
+            continue
+        clearBoard()
+        printBoard()
+    print('게임을 종료하겠습니다. ', end='')
+    if not _isExit:
+        _isExit = True
+        print('최고점수: ', _max)
+    input()
+
 def getInput():
     global _isFinGame
     key = input('방향: ')
@@ -361,23 +391,8 @@ def inGame():
     global _isExit
     while not _isExit:
         _inGame()
-        printBoard()
         writeSettings()
-        while True:
-            print('게임이 종료되었습니다. 다시하시겠습니까?')
-            ans = input('다시시작: Y, 게임종료: N: ')
-            if ans in ('Y', 'y', 'ㅇ'):
-                _isOnGame = False
-                break
-            elif ans in ('N', 'n', 'ㄴ'):
-                _isExit = True
-                break
-            else:
-                print('잘못 입력하셨습니다. 다시 입력해주세요.')
-                continue
-        clearBoard()
-    print('게임을 종료하겠습니다. 최고점수: ', _max)
-    input()
+        gameOver()
 
 
 inGame()
