@@ -11,7 +11,7 @@ _yPos = -1
 _curr = 1
 _max = 1
 _icon = 0
-_version = 1121
+_version = 1125
 _isOnGame = False
 _isFinGame = False
 _isExit = False
@@ -46,6 +46,7 @@ def init():
             _isFinGame = True
             _isExit = True
             return
+        else: continue
     clearConsole()
     xPos = random.randint(0, _BOARDSIZE-1)
     yPos = random.randint(0, _BOARDSIZE-1)
