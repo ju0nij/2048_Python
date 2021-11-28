@@ -1,31 +1,231 @@
 import os
 import random
 
-
-_BOARDSIZE = 4
-_SPACE = 4
-_MAXBOARDSIZE = 11
-
-_xPos = -1
-_yPos = -1
-_curr = 1
-_max = 1
-_icon = 0
 _version = 1125
-_isOnGame = False
-_isFinGame = False
-_isExit = False
-_isOver2048 = False
 
-board = [[0 for col in range(_MAXBOARDSIZE+1)] for row in range(_MAXBOARDSIZE+1)]
-icons = ['■', '□', '◆', '◇', '●', '○', '★', '☆']
+class Pos:
+    def __init__(self, size):
+        self.__xpos = 0
+        self.__ypos = 0
+        self.__arg = 0
+        self.genNumRandomly(size)
+        
+    def isNew(self, x, y):
+        if x == self.xpos and y == self.ypos:
+            return True
+        else: return False
+        
+    def setPos(self, x, y):
+        self.__xpos = x
+        self.__ypos = y
+        
+    def genNumRandomly(self, size):
+        num = random.randint(1, 10)
+        self.__xpos = random.randint(0, size-1)
+        self.__ypos = random.randint(0, size-1)
+        if num < 9: self.__arg = 2
+        else: self.__arg = 4
+        
+    def getX(self):
+        return self.__xpos
+    
+    def getY(self):
+        return self.__ypos
+    
+    def getValue(self):
+        return self.__arg
+    
+class G2048:
+    def __init__(self, boardsize, maxboardsize, icon, _max):
+        self._boardsize = boardsize
+        self._maxboardsize = maxboardsize
+        self._icon = icon
+        self._max = _max
+        self.BOARD = [[0 for col in range(self._maxboardsize+1)] for row in range(self._maxboardsize+1)]
+        self.ICONS = ['■', '□', '◆', '◇', '●', '○', '★', '☆']
+        self._isOnGame = False
+        self._isFinGame = False
+        self._isExit = False
+        self._isOver2048 = False
+        self._curr = 1
+        self._space = 4
+        self._NUMBER = Pos(self._boardsize)
+        
+    def setData(self, max, icon, boardsize):
+        self._max = max
+        self._boardsize = boardsize
+        self._icon = icon
 
+    def setBoardData(self, x, y, data):
+        self.BOARD[x][y] = data
+    
+    def getBoardData(self, x, y):
+        return self.BOARD[x][y]
+    
+    def printBoard(self):
+        clearConsole()
+        print('2048 with Python ver', _version, ' (',str(self._boardsize), 'x', str(self._boardsize), ')')
+        print('조작: WASD, 신규생성숫자: *, 설정: U, 게임 종료: Z')
+        print('현재 점수: ', self._curr, ', 현재 최고점수(숫자): ', end='')
+        if self._curr == self._max:
+            print('*', end='')
+        print(self._max)
+        print()
+        for x in range(self._boardsize):
+            for y in range(self._boardsize):
+                if x == self._NUMBER.getX() and y == self._NUMBER.getY():
+                    print('*'+ str(self.getBoardData(x,y)), ' '*(self._space-len(str(self.getBoardData(x,y)))), end='')
+                elif self.getBoardData(x,y) == 0:
+                    print(self.ICONS[self._icon], ' '*(self._space-len(str(self.getBoardData(x,y)))), end='')
+                else: print(self.getBoardData(x,y), ' '*(self._space-len(str(self.getBoardData(x,y)))+1), end='')
+            for z in range(self._space-1):
+                print()
+                
+    def clearBoard(self):
+        self._isFinGame = False
+        self._curr = 1
+        for x in range(self._boardsize):
+            for y in range(self._boardsize):
+                self.setBoardData(x,y,0)
+                
+    def updateScore(self):
+        if self._curr > self._max:
+            self._max = self._curr
+            
+    def checkDirAvailable(self, x, y, dir):
+        if dir == 'Up':
+            if x > 0: return True
+            else: return False
+        elif dir == 'Left':
+            if y > 0: return True
+            else: return False
+        elif dir == 'Down':
+            if x < self._boardsize: return True
+            else: return False
+        elif dir == 'Right':
+            if y < self._boardsize: return True
+            else: return False
+        else: return False
+        
+    def hasNoSpace(self):
+        for x in range(self._boardsize):
+            for y in range(self._boardsize):
+                if self.BOARD[x][y] == 0:
+                    return False
+        return True
 
+    def applyDir(self, _dir):
+        if _dir == 'Up':
+            for x in range(1, self._boardsize, 1):
+                for y in range(0, self._boardsize):
+                    if self.checkDirAvailable(x, y, _dir):
+                        for m in range(self._boardsize-1, 0, -1):
+                            for n in range(0, self._boardsize):
+                                if self.getBoardData(m-1,n) == 0:
+                                    self.setBoardData(m-1,n,self.getBoardData(m,n))
+                                    self.setBoardData(m,n,0)
+                    if self.getBoardData(x-1,y) == self.getBoardData(x,y):
+                        self.setBoardData(x-1,y, self.getBoardData(x-1,y)*2)
+                        self.setBoardData(x,y,0)
+                        if self.getBoardData(x-1,y) > self._curr:
+                            self._curr = self.getBoardData(x-1,y)
+        elif _dir == 'Left':
+            for y in range(1, self._boardsize, 1):
+                for x in range(0, self._boardsize):
+                    if self.checkDirAvailable(x, y, _dir):
+                        for n in range(self._boardsize-1, 0, -1):
+                            for m in range(0, self._boardsize):
+                                if self.BOARD[m][n-1] == 0:
+                                    self.BOARD[m][n-1] = self.BOARD[m][n]
+                                    self.BOARD[m][n] = 0
+                    if self.BOARD[x][y-1] == self.BOARD[x][y]:
+                        self.BOARD[x][y-1] *= 2
+                        self.BOARD[x][y] = 0
+                        if self.BOARD[x][y-1] > self._curr:
+                            self._curr = self.BOARD[x][y-1]
+        elif _dir == 'Down':
+            for x in range(self._boardsize-1, 0, -1):
+                for y in range(0, self._boardsize):
+                    if self.checkDirAvailable(x, y, _dir):
+                        for m in range(0, self._boardsize-1):
+                            for n in range(0, self._boardsize):
+                                if self.BOARD[m+1][n] == 0:
+                                    self.BOARD[m+1][n] = self.BOARD[m][n]
+                                    self.BOARD[m][n] = 0
+                    if self.BOARD[x][y] == self.BOARD[x-1][y]:
+                        self.BOARD[x][y] *= 2
+                        self.BOARD[x-1][y] = 0
+                        if self.BOARD[x][y] > self._curr:
+                            self._curr = self.BOARD[x][y]
+        elif _dir == 'Right':
+            for y in range(self._boardsize-1, 0, -1):
+                for x in range(0, self._boardsize):
+                    if self.checkDirAvailable(x, y, _dir):
+                        for n in range(0, self._boardsize-1):
+                            for m in range(0, self._boardsize):
+                                if self.BOARD[m][n+1] == 0:
+                                    self.BOARD[m][n+1] = self.BOARD[m][n]
+                                    self.BOARD[m][n] = 0
+                    if self.BOARD[x][y] == self.BOARD[x][y-1]:
+                        self.BOARD[x][y] *= 2
+                        self.BOARD[x][y-1] = 0
+                        if self.BOARD[x][y] > self._curr:
+                            self._curr = self.BOARD[x][y]
+        else: return
+        
+    def isPlayAvailable(self):
+        if self._isFinGame:
+            return False
+        elif not self.hasNoSpace():
+            return True
+        for m in range(self._boardsize-1, 0, -1):
+                for n in range(0, self._boardsize):
+                        if self.BOARD[m-1][n] == 0:
+                            self.BOARD[m-1][n] = self.BOARD[m][n]
+                            self.BOARD[m][n] = 0
+        for m in range(0, self._boardsize-1):
+            for n in range(0, self._boardsize):
+                if self.BOARD[m+1][n] == 0:
+                    self.BOARD[m+1][n] = self.BOARD[m][n]
+                    self.BOARD[m][n] = 0
+        for n in range(self._boardsize-1, 0, -1):
+            for m in range(0, self._boardsize):
+                if self.BOARD[m][n-1] == 0:
+                    self.BOARD[m][n-1] = self.BOARD[m][n]
+                    self.BOARD[m][n] = 0
+        for n in range(0, self._boardsize-1):
+            for m in range(0, self._boardsize):
+                if self.BOARD[m][n+1] == 0:
+                    self.BOARD[m][n+1] = self.BOARD[m][n]
+                    self.BOARD[m][n] = 0
+        if hasNoSpace():
+            for x in range(0, self._boardsize):
+                for y in range(0, self._boardsize):
+                    if self.BOARD[x][y] == self.BOARD[x+1][y] or self.BOARD[x][y] == self.BOARD[x][y+1] or self.BOARD[x][y] == self.BOARD[x-1][y] or self.BOARD[x][y] == self.BOARD[x][y-1]:
+                        return True
+            self._isFinGame = True
+            return False
+        else: return True
+        
+    def FinishGame(self):
+        self._isFinGame = True
+        self._isExit = True
+        
+    def genNum(self):
+        if self.hasNoSpace():
+            self._NUMBER.setPos(-1,-1)
+            return
+        while True:
+            self._NUMBER.genNumRandomly(self._boardsize)
+            if self.BOARD[self._NUMBER.getX()][self._NUMBER.getY()] == 0:
+                self.BOARD[self._NUMBER.getX()][self._NUMBER.getY()] = self._NUMBER.getValue()
+                if self.BOARD[self._NUMBER.getX()][self._NUMBER.getY()] > self._curr:
+                    self._curr = self.BOARD[self._NUMBER.getX()][self._NUMBER.getY()]
+                    self.updateScore()
+                return
+
+MAIN = G2048(4,11,0,1)
 def init():
-    global _BOARDSIZE
-    global _isFinGame
-    global _isOnGame
-    global _isExit
     readSettings()
     while True:
         clearConsole()
@@ -37,25 +237,21 @@ def init():
             print('숫자가 아닙니다. 다시 입력해주세요.')
             continue
         if ans == 1:
-            _isOnGame = True
-            clearBoard()
+            MAIN._isOnGame = True
+            MAIN.clearBoard()
             break
         elif ans == 2:
             updateSettings()
         elif ans == 3:
-            _isFinGame = True
-            _isExit = True
+            Main.FinishGame()
             return
         else: continue
     clearConsole()
-    xPos = random.randint(0, _BOARDSIZE-1)
-    yPos = random.randint(0, _BOARDSIZE-1)
-    board[xPos][yPos] = 2
+    xPos = random.randint(0, MAIN._boardsize-1)
+    yPos = random.randint(0, MAIN._boardsize-1)
+    MAIN.BOARD[xPos][yPos] = 2
 
 def readSettings():
-    global _max
-    global _icon
-    global _BOARDSIZE
     try:
         with open('data.bin', 'r') as file:
             lines = file.readlines()
@@ -70,19 +266,17 @@ def readSettings():
         _max = 1
     if _icon not in range(0, 8):
         _icon = 0
-    if _BOARDSIZE not in range(3, _MAXBOARDSIZE+1):
+    if _BOARDSIZE not in range(3, MAIN._maxboardsize+1):
         _BOARDSIZE = 4
+    MAIN.setData(_max, _icon, _BOARDSIZE)
 
 def writeSettings():
-    global _BOARDSIZE
     with open('data.bin', 'w') as file:
-        file.write(str(_max) + '\n')
-        file.write(str(_icon) + '\n')
-        file.write(str(_BOARDSIZE) + '\n')
+        file.write(str(MAIN._max) + '\n')
+        file.write(str(MAIN._icon) + '\n')
+        file.write(str(MAIN._boardsize) + '\n')
 
 def updateSettings():
-    global _BOARDSIZE
-    global _icon
     while True:
         clearConsole()
         print('1. 공백 아이콘 변경  2. 판 크기 변경  3. 나가기')
@@ -95,16 +289,16 @@ def updateSettings():
             while True:
                 print('1. ■, 2. □, 3. ◆, 4. ◇, 5. ●, 6. ○, 7. ★, 8. ☆')
                 print('현재 설정: ', end='')
-                print(_icon+1)
+                print(MAIN._icon+1)
                 inp = input('무엇으로 하시겠습니까? ')
                 try: inp = int(inp)
                 except:
                     print('숫자가 아닙니다. 다시 입력해주세요.')
                     continue
-                if inp not in range(1, len(icons)+1):
+                if inp not in range(1, len(MAIN.ICONS)+1):
                     print('범위를 초과하였습니다. 다시 입력해주세요.')
                     continue
-                _icon = inp-1
+                MAIN._icon = inp-1
                 print('완료하였습니다. 계속하시려면 아무 키나 눌러주세요.')
                 input() 
                 break
@@ -112,20 +306,20 @@ def updateSettings():
             while True:
                 print('판의 크기를 정해주세요.(정사각형, 추천: 4x4)')
                 print('현재 판의 크기: ', end='')
-                print(_BOARDSIZE)
-                if not _isOnGame:
-                    inp = input('숫자 하나를 입력해주세요(' + str(3) + '~' + str(_MAXBOARDSIZE) + '): ')
+                print(MAIN._boardsize)
+                if not MAIN._isOnGame:
+                    inp = input('숫자 하나를 입력해주세요(' + str(3) + '~' + str(MAIN._maxboardsize) + '): ')
                 else:
-                    inp = input('숫자 하나를 입력해주세요(' + str(_BOARDSIZE) + '~' + str(_MAXBOARDSIZE) + '): ')
+                    inp = input('숫자 하나를 입력해주세요(' + str(MAIN._boardsize) + '~' + str(MAIN._maxboardsize) + '): ')
                 try: inp = int(inp)
                 except:
                     print('숫자가 아닙니다. 다시 입력해주세요.')
                     continue
-                if _isOnGame and inp < _BOARDSIZE:
+                if MAIN._isOnGame and inp < MAIN._boardsize:
                     print('범위를 초과하였습니다. 다시 입력해주세요.')
                     continue
-                elif inp in range(3, _MAXBOARDSIZE+1):
-                    _BOARDSIZE = inp
+                elif inp in range(3, MAIN._maxboardsize+1):
+                    MAIN._boardsize = inp
                     print('완료하였습니다. 계속하시려면 아무 키나 눌러주세요.')
                     input()
                     break
@@ -141,260 +335,61 @@ def clearConsole():
     if os.name in ('nt', 'dos'): os.system('cls')
     else: os.system('clear')
 
-def printBoard():
-    clearConsole()
-    print('2048 with Python ver', _version, ' (',str(_BOARDSIZE), 'x', str(_BOARDSIZE), ')')
-    print('조작: WASD, 신규생성숫자: *, 설정: U, 게임 종료: Z')
-    print('현재 점수: ', _curr, ', 현재 최고점수(숫자): ', end='')
-    if _curr == _max:
-        print('*', end='')
-    print(_max)
-    print()
-    for x in range(_BOARDSIZE):
-        for y in range(_BOARDSIZE):
-            if x == _xPos and y == _yPos:
-                print('*'+ str(board[x][y]), ' '*(_SPACE-len(str(board[x][y]))), end='')
-            elif board[x][y] == 0:
-                print(icons[_icon], ' '*(_SPACE-len(str(board[x][y]))), end='')
-            else: print(board[x][y], ' '*(_SPACE-len(str(board[x][y]))+1), end='')
-        for z in range(_SPACE-1):
-            print()
-
-def clearBoard():
-    global _curr
-    global _isFinGame
-    _isFinGame = False
-    _curr = 1
-    for x in range(_BOARDSIZE):
-        for y in range(_BOARDSIZE):
-            board[x][y] = 0
-
-def updateScore():
-    global _max
-    if _curr > _max:
-        _max = _curr
-    if _curr == 2048 and not _isOver2048:
-        over2048()
-
-def genNumRandomly():
-    global _xPos
-    global _yPos
-    global _curr
-    if hasNoSpace():
-        _xPos = -1
-        _yPos = -1
-        return
-    arg = random.randint(1, 10)
-    while True:
-        xPos = random.randint(0, _BOARDSIZE-1)
-        yPos = random.randint(0, _BOARDSIZE-1)
-        if board[xPos][yPos] == 0:
-            if arg < 9:
-                board[xPos][yPos] = 2
-            else:
-                board[xPos][yPos] = 4
-            _xPos = xPos
-            _yPos = yPos
-            if board[xPos][yPos] > _curr:
-                _curr = board[xPos][yPos]
-            return
-
-def checkDirAvailable(x, y, dir):
-    if dir == 'Up':
-        if x > 0: return True
-        else: return False
-    elif dir == 'Left':
-        if y > 0: return True
-        else: return False
-    elif dir == 'Down':
-        if x < _BOARDSIZE: return True
-        else: return False
-    elif dir == 'Right':
-        if y < _BOARDSIZE: return True
-        else: return False
-    else: return False
-
-def isPlayAvailable():
-    global _isFinGame
-    if _isFinGame:
-        return False
-    elif not hasNoSpace():
-        return True
-    for m in range(_BOARDSIZE-1, 0, -1):
-            for n in range(0, _BOARDSIZE):
-                    if board[m-1][n] == 0:
-                        board[m-1][n] = board[m][n]
-                        board[m][n] = 0
-    for m in range(0, _BOARDSIZE-1):
-        for n in range(0, _BOARDSIZE):
-            if board[m+1][n] == 0:
-                board[m+1][n] = board[m][n]
-                board[m][n] = 0
-    for n in range(_BOARDSIZE-1, 0, -1):
-        for m in range(0, _BOARDSIZE):
-            if board[m][n-1] == 0:
-                board[m][n-1] = board[m][n]
-                board[m][n] = 0
-    for n in range(0, _BOARDSIZE-1):
-        for m in range(0, _BOARDSIZE):
-            if board[m][n+1] == 0:
-                board[m][n+1] = board[m][n]
-                board[m][n] = 0
-    if hasNoSpace():
-        for x in range(0, _BOARDSIZE):
-            for y in range(0, _BOARDSIZE):
-                if board[x][y] == board[x+1][y] or board[x][y] == board[x][y+1] or board[x][y] == board[x-1][y] or board[x][y] == board[x][y-1]:
-                    return True
-        _isFinGame = True
-        return False
-    else: return True
-
-def hasNoSpace():
-    for x in range(_BOARDSIZE):
-        for y in range(_BOARDSIZE):
-            if board[x][y] == 0:
-                return False
-    return True
-
-def over2048():
-    global _isFinGame
-    global _isOver2048
-    clearConsole()
-    while True:
-        print('2048 점을 넘으셨습니다!! 계속 플레이 하시겠습니까?')
-        ovr = input('예: Y, 아니오: N: ')
-        if ovr in ('Y', 'y', 'ㅇ'):
-            _isOver2048 = True
-            return
-        elif ovr in ('N', 'n', 'ㄴ'):
-            _isFinGame = True
-            return
-        else:
-            print('잘못 입력하셨습니다. 다시 입력해주세요.')
-            continue
-
 def gameOver():
-    global _isExit
-    global _isFinGame
-    global _isOnGame
-    if not _isExit:
-        printBoard()
-    while not _isExit:
+    if not MAIN._isExit:
+        MAIN.printBoard()
+    while not MAIN._isExit:
         print('게임이 종료되었습니다. 다시하시겠습니까?')
         ans = input('다시시작: Y, 게임종료: N: ')
         if ans in ('Y', 'y', 'ㅇ'):
-            _isOnGame = False
-            _isFinGame = False
+            MAIN._isOnGame = False
+            MAIN._isFinGame = False
             return
         elif ans in ('N', 'n', 'ㄴ'):
             break
         else:
             print('잘못 입력하셨습니다. 다시 입력해주세요.')
             continue
-        clearBoard()
-        printBoard()
+        MAIN.clearBoard()
+        MAIN.printBoard()
     print('게임을 종료하겠습니다. ', end='')
-    if not _isExit:
-        _isExit = True
-        print('최고점수: ', _max)
+    if not MAIN._isExit:
+        MAIN._isExit = True
+        print('최고점수: ', MAIN._max)
     input()
 
 def getInput():
-    global _isFinGame
     key = input('방향: ')
     if key in ('W', 'w', 'ㅉ', 'ㅈ'):
-        applyDir('Up')
+        MAIN.applyDir('Up')
     elif key in ('A', 'a', 'ㅁ'):
-        applyDir('Left')
+        MAIN.applyDir('Left')
     elif key in ('S', 's', 'ㄴ'):
-        applyDir('Down')
+        MAIN.applyDir('Down')
     elif key in ('D', 'd', 'ㅇ'):
-        applyDir('Right')
+        MAIN.applyDir('Right')
     elif key in ('Z', 'z'):
-        _isFinGame = True
+        MAIN._isFinGame = True
     elif key in ('U', 'u'):
         updateSettings()
     else:
         print('잘못 입력하셨습니다. 다시 입력해주세요.')
         getInput()
 
-def applyDir(_dir):
-    global _curr
-    if _dir == 'Up':
-        for x in range(1, _BOARDSIZE, 1):
-            for y in range(0, _BOARDSIZE):
-                if checkDirAvailable(x, y, _dir):
-                    for m in range(_BOARDSIZE-1, 0, -1):
-                        for n in range(0, _BOARDSIZE):
-                            if board[m-1][n] == 0:
-                                board[m-1][n] = board[m][n]
-                                board[m][n] = 0
-                if board[x-1][y] == board[x][y]:
-                    board[x-1][y] *= 2
-                    board[x][y] = 0
-                    if board[x-1][y] > _curr:
-                        _curr = board[x-1][y]
-    elif _dir == 'Left':
-        for y in range(1, _BOARDSIZE, 1):
-            for x in range(0, _BOARDSIZE):
-                if checkDirAvailable(x, y, _dir):
-                    for n in range(_BOARDSIZE-1, 0, -1):
-                        for m in range(0, _BOARDSIZE):
-                            if board[m][n-1] == 0:
-                                board[m][n-1] = board[m][n]
-                                board[m][n] = 0
-                if board[x][y-1] == board[x][y]:
-                    board[x][y-1] *= 2
-                    board[x][y] = 0
-                    if board[x][y-1] > _curr:
-                        _curr = board[x][y-1]
-    elif _dir == 'Down':
-        for x in range(_BOARDSIZE-1, 0, -1):
-            for y in range(0, _BOARDSIZE):
-                if checkDirAvailable(x, y, _dir):
-                    for m in range(0, _BOARDSIZE-1):
-                        for n in range(0, _BOARDSIZE):
-                            if board[m+1][n] == 0:
-                                board[m+1][n] = board[m][n]
-                                board[m][n] = 0
-                if board[x][y] == board[x-1][y]:
-                    board[x][y] *= 2
-                    board[x-1][y] = 0
-                    if board[x][y] > _curr:
-                        _curr = board[x][y]
-    elif _dir == 'Right':
-        for y in range(_BOARDSIZE-1, 0, -1):
-            for x in range(0, _BOARDSIZE):
-                if checkDirAvailable(x, y, _dir):
-                    for n in range(0, _BOARDSIZE-1):
-                        for m in range(0, _BOARDSIZE):
-                            if board[m][n+1] == 0:
-                                board[m][n+1] = board[m][n]
-                                board[m][n] = 0
-                if board[x][y] == board[x][y-1]:
-                    board[x][y] *= 2
-                    board[x][y-1] = 0
-                    if board[x][y] > _curr:
-                        _curr = board[x][y]
-    else: return
-
 def _inGame():
     init()
-    while not _isFinGame:
-        genNumRandomly()
-        updateScore()
-        if not isPlayAvailable():
+    while not MAIN._isFinGame:
+        MAIN.genNum()
+        if not MAIN.isPlayAvailable():
             break
-        printBoard()
+        MAIN.printBoard()
         getInput()
         print()
 
 def inGame():
-    global _isExit
-    while not _isExit:
+    while not MAIN._isExit:
         _inGame()
         writeSettings()
         gameOver()
-
 
 inGame()
