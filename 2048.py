@@ -1,7 +1,7 @@
 import os
 import random
 
-_version = 1125
+_version = 1128
 _isExit = False
 
 class Pos:
@@ -12,7 +12,7 @@ class Pos:
         self.genNumRandomly(size)
         
     def isNew(self, x, y):
-        if x == self.xpos and y == self.ypos:
+        if x == self.__xpos and y == self.__ypos:
             return True
         else: return False
         
@@ -38,11 +38,11 @@ class Pos:
     
 class G2048:
     def __init__(self, filename):
-        lists = self.readSettings(filename)
-        self.__max = lists[0]
-        self.__icon = lists[1]
-        self.__boardsize = lists[2]
-        self.__maxboardsize = lists[3]
+        data = self.readSettings(filename)
+        self.__max = data['max']
+        self.__icon = data['icon']
+        self.__boardsize = data['boardsize']
+        self.__maxboardsize = data['maxboardsize']
         self.BOARD = [[0 for col in range(self.__maxboardsize+1)] for row in range(self.__maxboardsize+1)]
         self.ICONS = ['■', '□', '◆', '◇', '●', '○', '★', '☆']
         self.__isOnGame = False
@@ -51,25 +51,18 @@ class G2048:
         self.__space = 4
         self.__NUMBER = Pos(self.__boardsize)
         
-    def getData(self, var='null'):
-        if var == 'null': return [self.__max, self.__icon, self.__boardsize, self.__maxboardsize]
-        elif var == 'max': return self.__max
-        elif var == 'icon': return self.__icon
-        elif var == 'boardsize': return self.__boardsize
-        elif var == 'maxboardsize': return self.__maxboardsize
-        else: return null
+    def getData(self):
+        return {'max': self.__max, 'icon': self.__icon, 'boardsize': self.__boardsize, 'maxboardsize': self.__maxboardsize}
         
     def setData(self, max='null', icon='null', boardsize='null'):
         if max != 'null': self.__max = max
         if icon != 'null': self.__icon = icon
         if boardsize != 'null': self.__boardsize = boardsize
 
-    def setBoardData(self, x, y, data):
-        self.BOARD[x][y] = data
+    def BoardData(self, x, y, data='null'):
+        if data == 'null': return self.BOARD[x][y]
+        else: self.BOARD[x][y] = data
     
-    def getBoardData(self, x, y):
-        return self.BOARD[x][y]
-
     def isOnGame(self, var='null'):
         if var == 'null': return self.__isOnGame
         else:
@@ -107,15 +100,15 @@ class G2048:
             _boardsize = 4
         if _maxboardsize < _boardsize or _maxboardsize not in range(3, 34):
             _maxboardsize = 11
-        return [_max, _icon, _boardsize, _maxboardsize]
+        return {'max': _max, 'icon': _icon, 'boardsize': _boardsize,'maxboardsize': _maxboardsize}
 
     def writeSettings(self, filename='data.bin'):
-        var = self.getData()
+        data = self.getData()
         with open(filename, 'w') as file:
-            file.write(str(var[0]) + '\n')
-            file.write(str(var[1]) + '\n')
-            file.write(str(var[2]) + '\n')
-            file.write(str(var[3]) + '\n')
+            file.write(str(data['max']) + '\n')
+            file.write(str(data['icon']) + '\n')
+            file.write(str(data['boardsize']) + '\n')
+            file.write(str(data['maxboardsize']) + '\n')
         
     def printBoard(self):
         clearConsole()
@@ -129,10 +122,10 @@ class G2048:
         for x in range(self.__boardsize):
             for y in range(self.__boardsize):
                 if x == self.__NUMBER.getX() and y == self.__NUMBER.getY():
-                    print('*'+ str(self.getBoardData(x,y)), ' '*(self.__space-len(str(self.getBoardData(x,y)))), end='')
-                elif self.getBoardData(x,y) == 0:
-                    print(self.ICONS[self.__icon], ' '*(self.__space-len(str(self.getBoardData(x,y)))), end='')
-                else: print(self.getBoardData(x,y), ' '*(self.__space-len(str(self.getBoardData(x,y)))+1), end='')
+                    print('*'+ str(self.BoardData(x,y)), ' '*(self.__space-len(str(self.BoardData(x,y)))), end='')
+                elif self.BoardData(x,y) == 0:
+                    print(self.ICONS[self.__icon], ' '*(self.__space-len(str(self.BoardData(x,y)))), end='')
+                else: print(self.BoardData(x,y), ' '*(self.__space-len(str(self.BoardData(x,y)))+1), end='')
             for z in range(self.__space-1):
                 print()
                 
@@ -141,7 +134,7 @@ class G2048:
         self.__curr = 1
         for x in range(self.__boardsize):
             for y in range(self.__boardsize):
-                self.setBoardData(x,y,0)
+                self.BoardData(x,y,0)
                 
     def updateScore(self):
         if self.__curr > self.__max:
@@ -227,14 +220,14 @@ class G2048:
                     if self.checkDirAvailable(x, y, _dir):
                         for m in range(self.__boardsize-1, 0, -1):
                             for n in range(0, self.__boardsize):
-                                if self.getBoardData(m-1,n) == 0:
-                                    self.setBoardData(m-1,n,self.getBoardData(m,n))
-                                    self.setBoardData(m,n,0)
-                    if self.getBoardData(x-1,y) == self.getBoardData(x,y):
-                        self.setBoardData(x-1,y, self.getBoardData(x-1,y)*2)
-                        self.setBoardData(x,y,0)
-                        if self.getBoardData(x-1,y) > self.__curr:
-                            self.__curr = self.getBoardData(x-1,y)
+                                if self.BoardData(m-1,n) == 0:
+                                    self.BoardData(m-1,n,self.BoardData(m,n))
+                                    self.BoardData(m,n,0)
+                    if self.BoardData(x-1,y) == self.BoardData(x,y):
+                        self.BoardData(x-1,y, self.BoardData(x-1,y)*2)
+                        self.BoardData(x,y,0)
+                        if self.BoardData(x-1,y) > self.__curr:
+                            self.__curr = self.BoardData(x-1,y)
         elif _dir == 'Left':
             for y in range(1, self.__boardsize, 1):
                 for x in range(0, self.__boardsize):
@@ -292,20 +285,20 @@ def init():
             print('숫자가 아닙니다. 다시 입력해주세요.')
             continue
         if ans == 1:
-            MAIN.isOnGame(True)
-            MAIN.clearBoard()
+            Game_main.isOnGame(True)
+            Game_main.clearBoard()
             break
         elif ans == 2:
             updateSettings()
         elif ans == 3:
-            MAIN.FinishGame()
+            Game_main.FinishGame()
             _isExit = True
             return
         else: continue
     clearConsole()
-    xPos = random.randint(0, MAIN.getData('boardsize')-1)
-    yPos = random.randint(0, MAIN.getData('boardsize')-1)
-    MAIN.setBoardData(xPos, yPos, 2)
+    xPos = random.randint(0, Game_main.getData()['boardsize']-1)
+    yPos = random.randint(0, Game_main.getData()['boardsize']-1)
+    Game_main.BoardData(xPos, yPos, 2)
 
 def clearConsole():
     if os.name in ('nt', 'dos'): os.system('cls')
@@ -314,7 +307,7 @@ def clearConsole():
 def updateSettings():
     while True:
         clearConsole()
-        MAIN.writeSettings(filename)
+        Game_main.writeSettings(filename)
         print('1. 공백 아이콘 변경  2. 판 크기 변경  3. 나가기')
         ans = input('무엇을 하시겠습니까? ')
         try: ans = int(ans)
@@ -325,16 +318,16 @@ def updateSettings():
             while True:
                 print('1. ■, 2. □, 3. ◆, 4. ◇, 5. ●, 6. ○, 7. ★, 8. ☆')
                 print('현재 설정: ', end='')
-                print(MAIN.getData('icon')+1)
+                print(Game_main.getData()['icon']+1)
                 inp = input('무엇으로 하시겠습니까? ')
                 try: inp = int(inp)
                 except:
                     print('숫자가 아닙니다. 다시 입력해주세요.')
                     continue
-                if inp not in range(1, len(MAIN.ICONS)+1):
+                if inp not in range(1, len(Game_main.ICONS)+1):
                     print('범위를 초과하였습니다. 다시 입력해주세요.')
                     continue
-                MAIN.setData('null', inp-1, 'null')
+                Game_main.setData('null', inp-1, 'null')
                 print('완료하였습니다. 계속하시려면 아무 키나 눌러주세요.')
                 input() 
                 break
@@ -342,20 +335,20 @@ def updateSettings():
             while True:
                 print('판의 크기를 정해주세요.(정사각형, 추천: 4x4)')
                 print('현재 판의 크기: ', end='')
-                print(MAIN.getData('boardsize'))
-                if not MAIN.isOnGame():
-                    inp = input('숫자 하나를 입력해주세요(' + str(3) + '~' + str(MAIN.getData('maxboardsize')) + '): ')
+                print(Game_main.getData()['boardsize'])
+                if not Game_main.isOnGame():
+                    inp = input('숫자 하나를 입력해주세요(' + str(3) + '~' + str(Game_main.getData()['maxboardsize']) + '): ')
                 else:
-                    inp = input('숫자 하나를 입력해주세요(' + str(MAIN.getData('boardsize')) + '~' + str(MAIN.getData('maxboardsize')) + '): ')
+                    inp = input('숫자 하나를 입력해주세요(' + str(Game_main.getData()['boardsize']) + '~' + str(Game_main.getData()['maxboardsize']) + '): ')
                 try: inp = int(inp)
                 except:
                     print('숫자가 아닙니다. 다시 입력해주세요.')
                     continue
-                if MAIN.isOnGame() and inp < MAIN.getData('boardsize'):
+                if Game_main.isOnGame() and inp < Game_main.getData()['boardsize']:
                     print('범위를 초과하였습니다. 다시 입력해주세요.')
                     continue
-                elif inp in range(3, MAIN.getData('maxboardsize')+1):
-                    MAIN.setData('null', 'null', inp)
+                elif inp in range(3, Game_main.getData()['maxboardsize']+1):
+                    Game_main.setData('null', 'null', inp)
                     print('완료하였습니다. 계속하시려면 아무 키나 눌러주세요.')
                     input()
                     break
@@ -365,44 +358,44 @@ def updateSettings():
             break
         else:
             print('잘못 입력하셨습니다. 다시 입력해주세요.')
-    MAIN.writeSettings(filename)
+    Game_main.writeSettings(filename)
 
 def gameOver():
     global _isExit
     if not _isExit:
-        MAIN.printBoard()
+        Game_main.printBoard()
     while not _isExit:
         print('게임이 종료되었습니다. 다시하시겠습니까?')
         ans = input('다시시작: Y, 게임종료: N: ')
         if ans in ('Y', 'y', 'ㅇ'):
-            MAIN.isOnGame(False)
-            MAIN.isFinGame(False)
+            Game_main.isOnGame(False)
+            Game_main.isFinGame(False)
             return
         elif ans in ('N', 'n', 'ㄴ'):
             break
         else:
             print('잘못 입력하셨습니다. 다시 입력해주세요.')
             continue
-        MAIN.clearBoard()
-        MAIN.printBoard()
+        Game_main.clearBoard()
+        Game_main.printBoard()
     print('게임을 종료하겠습니다. ', end='')
     if not _isExit:
         _isExit = True
-        print('최고점수: ', MAIN.getData('max'))
+        print('최고점수: ', Game_main.getData()['max'])
     input()
 
 def getInput():
     key = input('방향: ')
     if key in ('W', 'w', 'ㅉ', 'ㅈ'):
-        MAIN.applyDir('Up')
+        Game_main.applyDir('Up')
     elif key in ('A', 'a', 'ㅁ'):
-        MAIN.applyDir('Left')
+        Game_main.applyDir('Left')
     elif key in ('S', 's', 'ㄴ'):
-        MAIN.applyDir('Down')
+        Game_main.applyDir('Down')
     elif key in ('D', 'd', 'ㅇ'):
-        MAIN.applyDir('Right')
+        Game_main.applyDir('Right')
     elif key in ('Z', 'z'):
-        MAIN.isFinGame(True)
+        Game_main.isFinGame(True)
     elif key in ('U', 'u'):
         updateSettings()
     else:
@@ -411,20 +404,20 @@ def getInput():
 
 def _inGame():
     init()
-    while not MAIN.isFinGame():
-        MAIN.genNum()
-        if not MAIN.isPlayAvailable():
+    while not Game_main.isFinGame():
+        Game_main.genNum()
+        if not Game_main.isPlayAvailable():
             break
-        MAIN.printBoard()
+        Game_main.printBoard()
         getInput()
         print()
 
 def inGame():
     while not _isExit:
         _inGame()
-        MAIN.writeSettings(filename)
+        Game_main.writeSettings(filename)
         gameOver()
 
 filename = 'data.bin'
-MAIN = G2048(filename)
+Game_main = G2048(filename)
 inGame()
